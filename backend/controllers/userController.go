@@ -1,33 +1,53 @@
 package controllers
 
 import (
-	"encoding/json"
-	"godock/backend/config"
-	"godock/backend/models"
-	"net/http"
+	"godock/config"
+	"godock/models"
+	"log"
+
+	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	db := config.InitDB()
-	defer db.Close()
+var db *gorm.DB
 
-	rows, err := db.Query("SELECT id, name, birthdate, gender, job, photo FROM users")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
+func Init(database *gorm.DB) {
+	db = database
+}
 
+func GetUsers(c *fiber.Ctx) error {
 	var users []models.User
-	for rows.Next() {
-		var user models.User
-		if err := rows.Scan(&user.ID, &user.Name, &user.BirthDate, &user.Gender, &user.Job, &user.Photo); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		users = append(users, user)
+	if err := config.DB.Raw("SELECT id, name, birthdate, gender, job, photo FROM users").Scan(&users).Error; err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to retrieve users"})
+	}
+	return c.JSON(users)
+}
+
+func GetUserByID(c *fiber.Ctx) error {
+	id := c.Params("id") // gunakan "id" (huruf kecil)
+	var user models.User
+	if err := db.First(&user, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+	}
+	return c.JSON(user)
+}
+
+func UpdateUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var user models.User
+
+	if err := db.First(&user, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(users)
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid data"})
+	}
+
+	if err := db.Save(&user).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to update user"})
+	}
+
+	return c.JSON(user)
 }

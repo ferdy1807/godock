@@ -1,19 +1,30 @@
 package config
 
 import (
-	"database/sql"
+	"fmt"
+	"godock/models"
 	"log"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func InitDB() *sql.DB {
-	// Connection string
-	connStr := "postgres://postgres:postgres@localhost:5432/godock?sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+var DB *gorm.DB
+
+// ConnectDB menghubungkan aplikasi ke database PostgreSQL
+func ConnectDB() *gorm.DB {
+	dsn := "host=localhost user=postgres password=postgres dbname=godock port=5432 sslmode=disable"
+	var err error
+
+	// Membuka koneksi ke database
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error connecting to the database: %v", err)
 	}
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
-	}
-	return db
+
+	// Menampilkan status koneksi
+	fmt.Println("Database connection successful")
+
+	DB.AutoMigrate(&models.User{})
+	return DB
 }

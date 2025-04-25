@@ -1,16 +1,38 @@
 package main
 
 import (
-	"godock/backend/routes"
-	"log"
+	"godock/config"
+	"godock/controllers"
+	"godock/routes"
+	"godock/seeder"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
 	app := fiber.New()
 
-	routes.Setup(app)
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
-	log.Fatal(app.Listen(":8080"))
+	// Ambil koneksi DB dari config
+	db := config.ConnectDB()
+
+	// Inisialisasi controller dengan DB
+	controllers.Init(db)
+
+	// Seed data (opsional)
+	seeder.CreateTableIfNotExists()
+	// seeder.ResetDatabase()
+	seeder.SeedUsers()
+
+	// Setup routes
+	routes.UserRoutes(app)
+
+	// Start server
+	app.Listen(":8080")
 }
