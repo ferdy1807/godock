@@ -8,6 +8,6 @@ import (
 
 func UserRoutes(app *fiber.App) {
 	app.Get("/users", controllers.GetUsers)
-	app.Get("/users/:id", controllers.GetUserByID) // Tambahkan ini
-	app.Put("/users/:id", controllers.UpdateUser)  // Tambahkan ini
+	app.Get("/users/:id", controllers.GetUserByID) // Menangani rute untuk mendapatkan user berdasarkan ID
+	app.Put("/users/:id", controllers.UpdateUser)  // Menangani rute untuk memperbarui user berdasarkan ID
 }

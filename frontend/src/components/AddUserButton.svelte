@@ -6,5 +6,7 @@
     }
   </script>
   
-  <button class="btn btn-success mb-4" on:click={handleClick}>Tambah User</button>
+  <button class="btn btn-success d-flex align-items-center gap-2 mb-4 shadow" on:click={handleClick}>
+    <i class="bi bi-person-plus-fill"></i> Tambah User
+  </button>
   

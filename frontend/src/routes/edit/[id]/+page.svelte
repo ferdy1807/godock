@@ -1,47 +1,66 @@
 <script lang="ts">
-  import UserForm from '../../../components/UserForm.svelte';  // Mengimpor UserForm
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores'; // Untuk mengakses parameter URL
+  import { goto } from '$app/navigation'; // Untuk navigasi
+  import UserForm from '../../../components/UserForm.svelte'; // Import komponen UserForm
 
-  // Mendapatkan data pengguna melalui load()
-  export async function load({ params }: { params: { id: string } }) {
-    const { id } = params;
-    const res = await fetch(`http://localhost:8080/users/${id}`);
+  let user = {
+    id: null,
+    name: '',
+    birthdate: '',
+    gender: '',
+    job: '',
+    photo: ''
+  };
 
-    if (!res.ok) {
-      return {
-        status: res.status,
-        error: new Error('Data pengguna tidak ditemukan')
-      };
+  // Menangani pemuatan data berdasarkan parameter ID
+  onMount(() => {
+    const id = $page.params.id; // Mengambil parameter ID dari URL
+    if (id) {
+      fetchUser(Number(id)); // Memanggil fungsi fetchUser dengan ID sebagai angka
     }
+  });
 
-    const user = await res.json();
-    return { user };
-  }
-
-  export let user: { id: number, name: string, birthdate: string, gender: string, job: string, photo: string };
-
-  // Fungsi untuk memperbarui data pengguna
-  async function updateUser(formData: FormData) {
-    const res = await fetch(`http://localhost:8080/users/${user.id}`, {
-      method: 'PUT',
-      body: formData
-    });
-
-    if (!res.ok) {
-      alert('Gagal memperbarui pengguna');
+  // Fungsi untuk mengambil data user berdasarkan ID
+  const fetchUser = async (userId: number) => {
+    const res = await fetch(`http://localhost:8080/users/${userId}`);
+    if (res.ok) {
+      user = await res.json(); // Menyimpan data user ke dalam variabel user
     } else {
-      alert('Pengguna berhasil diperbarui');
+      console.error('Gagal mengambil data user');
     }
-  }
+  };
+
+  // Fungsi untuk menangani pengiriman form
+  const handleSubmit = async (event: Event) => {
+    event.preventDefault(); // Mencegah pengiriman form secara default
+
+    // Periksa apakah user.id sudah ada, berarti update
+    if (user.id) {
+      try {
+        const res = await fetch(`http://localhost:8080/users/${user.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(user), // Mengirimkan data user yang sudah diubah
+        });
+
+        if (res.ok) {
+          alert('User updated successfully');
+          setTimeout(() => {
+            goto('/'); // Arahkan kembali ke halaman utama setelah alert
+          }, 2000);
+        } else {
+          alert('Failed to update user');
+        }
+      } catch (error) {
+        console.error('Error updating user:', error);
+        alert('Error updating user');
+      }
+    }
+  };
 </script>
 
-{#if user}
-  <div class="container mt-5">
-    <h1>Edit Pengguna</h1>
-    <div class="card p-4">
-      <!-- Mengoper user dan onSubmit ke komponen UserForm -->
-      <UserForm user={user} onSubmit={updateUser} />
-    </div>
-  </div>
-{:else}
-  <p>Data pengguna tidak ditemukan.</p>
-{/if}
+<!-- Gunakan komponen UserForm untuk menampilkan data -->
+<UserForm {user} on:submit={handleSubmit} />
