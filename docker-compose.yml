@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: godock
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/godock?sslmode=disable
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - backend
+
+volumes:
+  pg_data:
