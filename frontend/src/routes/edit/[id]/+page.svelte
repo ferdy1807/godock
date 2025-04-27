@@ -50,7 +50,7 @@
           alert('User updated successfully');
           setTimeout(() => {
             goto('/'); // Arahkan kembali ke halaman utama setelah alert
-          }, 2000);
+          }, 1000);
         } else {
           alert('Failed to update user');
         }

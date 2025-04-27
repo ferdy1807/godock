@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"godock/config"
 	"godock/models"
 	"log"
 	"strconv" // Untuk konversi string ke integer
@@ -14,6 +15,15 @@ var db *gorm.DB
 // Init digunakan untuk menginisialisasi database
 func Init(database *gorm.DB) {
 	db = database
+}
+
+func Home(c *fiber.Ctx) error {
+	var count int64
+	config.DB.Model(&models.User{}).Count(&count)
+
+	return c.JSON(fiber.Map{
+		"user_count": count,
+	})
 }
 
 // GetUsers mengambil semua user dari database

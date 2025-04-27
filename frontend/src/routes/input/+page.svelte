@@ -1,13 +1,13 @@
-<script>
+<script lang="ts">
   import { goto } from '$app/navigation';
 
-  let nama = '';
-  let tanggalLahir = '';
-  let jenisKelamin = '';
-  let pekerjaan = '';
-  let foto;
+  let nama: string = '';
+  let tanggalLahir: string = '';
+  let jenisKelamin: string = '';
+  let pekerjaan: string = '';
+  let foto: FileList | undefined;
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: SubmitEvent): Promise<void> {
     event.preventDefault();
 
     const formData = new FormData();
@@ -49,18 +49,18 @@
     <div class="card-body">
       <form on:submit={handleSubmit}>
         <div class="mb-3">
-          <label class="form-label">Nama</label>
-          <input type="text" class="form-control" bind:value={nama} required />
+          <label class="form-label" for="nama">Nama</label>
+          <input id="nama" type="text" class="form-control" bind:value={nama} required />
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Tanggal Lahir</label>
-          <input type="date" class="form-control" bind:value={tanggalLahir} required />
+          <label class="form-label" for="tanggalLahir">Tanggal Lahir</label>
+          <input id="tanggalLahir" type="date" class="form-control" bind:value={tanggalLahir} required />
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Jenis Kelamin</label>
-          <select class="form-select" bind:value={jenisKelamin} required>
+          <label class="form-label" for="jenisKelamin">Jenis Kelamin</label>
+          <select id="jenisKelamin" class="form-select" bind:value={jenisKelamin} required>
             <option value="" disabled selected>Pilih Jenis Kelamin</option>
             <option value="Laki-laki">Laki-laki</option>
             <option value="Perempuan">Perempuan</option>
@@ -68,13 +68,13 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Pekerjaan</label>
-          <input type="text" class="form-control" bind:value={pekerjaan} required />
+          <label class="form-label" for="pekerjaan">Pekerjaan</label>
+          <input id="pekerjaan" type="text" class="form-control" bind:value={pekerjaan} required />
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Foto</label>
-          <input type="file" class="form-control" bind:files={foto} accept="image/*" />
+          <label class="form-label" for="foto">Foto</label>
+          <input id="foto" type="file" class="form-control" bind:files={foto} accept="image/*" />
         </div>
 
         <button type="submit" class="btn btn-primary">
@@ -86,4 +86,3 @@
     </div>
   </div>
 </div>
-

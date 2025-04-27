@@ -3,7 +3,6 @@
   import AddUserButton from '../components/AddUserButton.svelte';
   import UserList from '../components/UserList.svelte';
 
-  // Mendefinisikan interface untuk user
   interface User {
     id: number;
     name: string;
@@ -13,20 +12,33 @@
     photo: string;
   }
 
-  // Mendeklarasikan users dengan tipe User[]
-  let users: User[] = []; // Array of User objects
+  let users: User[] = [];
+  let userCount: number = 0;
 
   onMount(async () => {
-    const res = await fetch('http://localhost:8080/users');
-    if (res.ok) {
-      users = await res.json();
+    const userRes = await fetch('http://localhost:8080/users');
+    if (userRes.ok) {
+      users = await userRes.json();
     } else {
       console.error('Gagal memuat data pengguna');
+    }
+
+    const countRes = await fetch('http://localhost:8080/count');
+    if (countRes.ok) {
+      const data = await countRes.json();
+      userCount = data.user_count;
+    } else {
+      console.error('Gagal memuat jumlah data');
     }
   });
 </script>
 
 <h1>Dashboard</h1>
-<AddUserButton />
+
+<div class="d-flex justify-content-between mb-4">
+  <!-- <h2>Total Users: {userCount}</h2> -->
+  <AddUserButton />
+</div>
+
 <hr />
 <UserList {users} />
