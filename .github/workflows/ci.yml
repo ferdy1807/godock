@@ -1,4 +1,4 @@
-name: Fullstack Build and Test
+name: Fullstack Build, Test, and Code Scanning
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build:
+  build_and_scan:
     runs-on: ubuntu-latest
 
     steps:
@@ -48,3 +48,30 @@ jobs:
       - name: Build Svelte frontend
         working-directory: frontend
         run: npm run build
+
+      # ---- CODE SCANNING (CodeQL) ----
+      - name: Set up CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: go, javascript # Sesuaikan bahasa yang digunakan (Go, JavaScript, dll)
+
+      - name: Build CodeQL database for backend
+        working-directory: backend
+        run: |
+          go mod tidy
+          go build -v ./...
+
+      - name: Run CodeQL analysis on backend
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "backend"
+
+      - name: Set up CodeQL for frontend (if applicable)
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+
+      - name: Run CodeQL analysis on frontend
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "frontend"
