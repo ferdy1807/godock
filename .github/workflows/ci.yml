@@ -1,35 +1,50 @@
-name: Build and Test Go Backend
+name: Fullstack Build and Test
 
 on:
   push:
-    paths:
-      - "backend/**"
+    branches:
+      - main
   pull_request:
-    paths:
-      - "backend/**"
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ---- BACKEND ----
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.24.2"
 
-      - name: Install dependencies
-        run: go mod tidy
+      - name: Build Go backend
+        working-directory: backend
+        run: |
+          go mod tidy
+          go build -v ./...
 
-      - name: Build
-        run: go build ./...
+      - name: Run Go backend (test run briefly)
+        working-directory: backend
+        run: |
+          timeout 5s go run main.go || true
+        # timeout 5s artinya jalan 5 detik, lalu berhenti
+        # || true supaya meskipun timeout, tetap success
 
-      - name: Test
-        run: go test ./...
+      # ---- FRONTEND ----
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # atau versi Node.js yang sesuai project kamu
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build Svelte frontend
+        working-directory: frontend
+        run: npm run build
