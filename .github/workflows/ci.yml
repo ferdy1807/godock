@@ -2,11 +2,13 @@ name: Fullstack Build, Test, and Code Scanning
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write # ⬅️ penting untuk Code Scanning (CodeQL)
 
 jobs:
   build_and_scan:
@@ -22,7 +24,6 @@ jobs:
         with:
           go-version: "1.24.2"
 
-      # Mengatur cache untuk backend Go
       - name: Cache Go modules
         uses: actions/cache@v3
         with:
@@ -43,14 +44,12 @@ jobs:
         working-directory: backend
         run: |
           timeout 5s go run main.go || true
-        # timeout 5s artinya jalan 5 detik, lalu berhenti
-        # || true supaya meskipun timeout, tetap success
 
       # ---- FRONTEND ----
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # atau versi Node.js yang sesuai project kamu
+          node-version: "20"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -60,29 +59,14 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      # ---- CODE SCANNING (CodeQL) ----
-      - name: Set up CodeQL
-        uses: github/codeql-action/init@v2
+      # ---- CODEQL SCANNING ----
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
         with:
-          languages: go, javascript # Sesuaikan bahasa yang digunakan (Go, JavaScript, dll)
+          languages: go, javascript
 
-      - name: Build CodeQL database for backend
-        working-directory: backend
-        run: |
-          go mod tidy
-          go build -v ./...
+      - name: Autobuild for CodeQL
+        uses: github/codeql-action/autobuild@v3
 
-      - name: Run CodeQL analysis on backend
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "backend"
-
-      - name: Set up CodeQL for frontend (if applicable)
-        uses: github/codeql-action/init@v2
-        with:
-          languages: javascript
-
-      - name: Run CodeQL analysis on frontend
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "frontend"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
